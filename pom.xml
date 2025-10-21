@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>main</groupId>
 	<artifactId>CICD_HW</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>CICD_HW</name>
 	<description>Homework by CICD</description>
 	<url/>
@@ -50,6 +50,12 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
+			<version>5.8.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
 			<version>5.8.2</version>
 			<scope>test</scope>
 		</dependency>
