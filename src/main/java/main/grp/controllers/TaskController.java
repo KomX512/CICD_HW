@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/tasks")
+@CrossOrigin(origins = "*") // Без этого не срабатывает...Разрешает запросы из любого источника для этого контроллера
 public class TaskController {
 
     @Autowired
