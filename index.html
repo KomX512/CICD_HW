@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO List Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .api-status {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        .server-url {
+            color: #6b7280;
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .task-form {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .tasks-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .tasks-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .task-item.completed {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+
+        .task-meta {
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #10b981;
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .task-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 TODO List</h1>
+            <p>Управляйте вашими задачами легко и эффективно</p>
+        </div>
+
+        <div class="content">
+            <div class="api-status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Проверка соединения...</span>
+                </div>
+                <div class="server-url" id="serverUrl"></div>
+            </div>
+
+            <div class="task-form">
+                <h3 class="section-title">Добавить новую задачу</h3>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Название задачи</label>
+                        <input 
+                            type="text" 
+                            id="taskTitle" 
+                            class="form-input" 
+                            placeholder="Введите название задачи..."
+                            required
+                            maxlength="255"
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span id="submitText">Добавить задачу</span>
+                        <span id="submitLoading" class="loading" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="tasks-section">
+                <h3 class="section-title">Мои задачи</h3>
+                <div class="tasks-list" id="tasksList">
+                    <div class="empty-state" id="emptyState">
+                        <i>📝</i>
+                        <p>Пока нет задач. Добавьте первую задачу!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class TodoApp {
+            constructor() {
+                this.baseUrl = 'http://localhost:8080';
+                this.tasks = [];
+                this.currentEditId = null;
+                
+                this.initializeApp();
+            }
+
+            initializeApp() {
+                this.checkConnection();
+                this.loadTasks();
+                this.setupEventListeners();
+            }
+
+            async checkConnection() {
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                const serverUrl = document.getElementById('serverUrl');
+                
+                serverUrl.textContent = this.baseUrl;
+
+                try {
+                    const response = await fetch(`${this.baseUrl}/tasks`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        statusDot.classList.add('connected');
+                        statusText.textContent = 'Соединение установлено';
+                    } else {
+                        throw new Error('Server error');
+                    }
+                } catch (error) {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Ошибка соединения';
+                    this.showNotification('Не удалось подключиться к серверу', 'error');
+                }
+            }
+
+            async loadTasks() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/tasks`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch tasks');
+                    }
+
+                    this.tasks = await response.json();
+                    this.renderTasks();
+                } catch (error) {
+                    console.error('Error loading tasks:', error);
+                    this.showNotification('Ошибка загрузки задач', 'error');
+                }
+            }
+
+            renderTasks() {
+                const tasksList = document.getElementById('tasksList');
+                const emptyState = document.getElementById('emptyState');
+
+                if (this.tasks.length === 0) {
+                    emptyState.style.display = 'block';
+                    tasksList.innerHTML = '';
+                    tasksList.appendChild(emptyState);
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                
+                tasksList.innerHTML = this.tasks.map(task => `
+                    <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                        <div class="task-info">
+                            <div class="task-title ${task.completed ? 'completed' : ''}">
+                                ${this.escapeHtml(task.title)}
+                            </div>
+                            <div class="task-meta">
+                                Создано: ${task.createdAt} | 
+                                ID: ${task.id} |
+                                Статус: ${task.completed ? '✅ Выполнена' : '⏳ В процессе'}
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn btn-sm ${task.completed ? 'btn-secondary' : 'btn-success'}" 
+                                    onclick="todoApp.toggleTask(${task.id})">
+                                ${task.completed ? 'Отменить' : 'Выполнить'}
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="todoApp.editTask(${task.id})">
+                                Редактировать
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="todoApp.deleteTask(${task.id})">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async createTask(title) {
+                this.setLoading(true);
+
+                try {
+                    const response = await fetch(`${this.baseUrl}/tasks`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: title,
+                            completed: false
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to create task');
+                    }
+
+                    const newTask = await response.json();
+                    this.tasks.push(newTask);
+                    this.renderTasks();
+                    this.showNotification('Задача успешно создана!', 'success');
+                    document.getElementById('taskForm').reset();
+
+                } catch (error) {
+                    console.error('Error creating task:', error);
+                    this.showNotification('Ошибка создания задачи', 'error');
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            async updateTask(id, title, completed) {
+                try {
+                    const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: title,
+                            completed: completed
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to update task');
+                    }
+
+                    const updatedTask = await response.json();
+                    const index = this.tasks.findIndex(task => task.id === id);
+                    if (index !== -1) {
+                        this.tasks[index] = updatedTask;
+                    }
+                    this.renderTasks();
+                    this.showNotification('Задача обновлена!', 'success');
+
+                } catch (error) {
+                    console.error('Error updating task:', error);
+                    this.showNotification('Ошибка обновления задачи', 'error');
+                }
+            }
+
+            async toggleTask(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    await this.updateTask(id, task.title, !task.completed);
+                }
+            }
+
+            async deleteTask(id) {
+                if (!confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to delete task');
+                    }
+
+                    this.tasks = this.tasks.filter(task => task.id !== id);
+                    this.renderTasks();
+                    this.showNotification('Задача удалена!', 'success');
+
+                } catch (error) {
+                    console.error('Error deleting task:', error);
+                    this.showNotification('Ошибка удаления задачи', 'error');
+                }
+            }
+
+            editTask(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (!task) return;
+
+                const titleInput = document.getElementById('taskTitle');
+                const submitBtn = document.getElementById('submitBtn');
+                const submitText = document.getElementById('submitText');
+
+                titleInput.value = task.title;
+                this.currentEditId = id;
+                
+                submitText.textContent = 'Обновить задачу';
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-success');
+                
+                titleInput.focus();
+            }
+
+            cancelEdit() {
+                const titleInput = document.getElementById('taskTitle');
+                const submitBtn = document.getElementById('submitBtn');
+                const submitText = document.getElementById('submitText');
+
+                titleInput.value = '';
+                this.currentEditId = null;
+                
+                submitText.textContent = 'Добавить задачу';
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-primary');
+            }
+
+            setupEventListeners() {
+                const taskForm = document.getElementById('taskForm');
+                const titleInput = document.getElementById('taskTitle');
+
+                taskForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const title = titleInput.value.trim();
+                    if (!title) {
+                        this.showNotification('Введите название задачи', 'error');
+                        return;
+                    }
+
+                    if (title.length > 255) {
+                        this.showNotification('Название задачи не должно превышать 255 символов', 'error');
+                        return;
+                    }
+
+                    if (this.currentEditId) {
+                        const task = this.tasks.find(t => t.id === this.currentEditId);
+                        if (task) {
+                            this.updateTask(this.currentEditId, title, task.completed);
+                            this.cancelEdit();
+                        }
+                    } else {
+                        this.createTask(title);
+                    }
+                });
+
+                // Обработка отмены редактирования по ESC
+                titleInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.currentEditId) {
+                        this.cancelEdit();
+                        this.showNotification('Редактирование отменено', 'error');
+                    }
+                });
+            }
+
+            setLoading(loading) {
+                const submitText = document.getElementById('submitText');
+                const submitLoading = document.getElementById('submitLoading');
+                const submitBtn = document.getElementById('submitBtn');
+
+                if (loading) {
+                    submitText.style.display = 'none';
+                    submitLoading.style.display = 'inline-block';
+                    submitBtn.disabled = true;
+                } else {
+                    submitText.style.display = 'inline-block';
+                    submitLoading.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        }
+
+        // Инициализация приложения
+        const todoApp = new TodoApp();
+
+        // Глобальные функции для обработки событий в HTML
+        window.todoApp = todoApp;
+
+        // Дополнительные утилиты
+        document.addEventListener('DOMContentLoaded', function() {
+            // Автофокус на поле ввода
+            document.getElementById('taskTitle').focus();
+        });
+    </script>
+</body>
+</html>
