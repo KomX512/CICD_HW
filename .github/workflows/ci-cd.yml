@@ -65,24 +65,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Download Docker image
-        uses: actions/download-artifact@v4
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@master
         with:
-          name: docker-image
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Deploy to server
-        run: |
-          chmod +x scripts/deploy.sh
-          ./scripts/deploy.sh
-        env:
-          SSH_HOST: ${{ secrets.VM_HOST }}
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+          # Скрипт деплоя
